@@ -172,7 +172,7 @@
             <button class="modal-close" onclick="closeProfileModal()">✕</button>
         </div>
         <div class="profile-canvas-wrap">
-            <canvas id="profile-canvas" width="280" height="220"></canvas>
+            <canvas id="profile-canvas" width="280" height="260"></canvas>
         </div>
         <div class="seg-table-wrap">
             <div class="seg-header">
@@ -596,11 +596,17 @@ function drawProfile() {
     const totalH = segs.reduce((s, r) => s + r.altezza, 0);
     const maxD = Math.max(...segs.map(s => Math.max(s.sopra, s.sotto)), 1);
 
-    const padTop = 28, padBot = 28, padLeft = 52, padRight = 24;
+    const padTop = 28, padBot = 36, padLeft = 52, padRight = 50;
     const drawW = W - padLeft - padRight;
     const drawH = H - padTop - padBot;
-    const scaleH = drawH / totalH;
-    const scaleW = (drawW / 2) / (maxD / 2);
+
+    // Scala proporzionale — stessa unità per altezza e diametro
+    const scaleByH = drawH / totalH;
+    const scaleByW = drawW / maxD;
+    const scale = Math.min(scaleByH, scaleByW); // usa la scala più restrittiva
+
+    const scaleH = scale;
+    const scaleW = scale;
     const cx = padLeft + drawW / 2;
 
     // Sfondo
@@ -695,17 +701,24 @@ function drawProfile() {
     const lastR = (lastSeg.sotto / 2) * scaleW;
     ctx.fillText('Ø' + lastSeg.sotto.toFixed(1), cx + lastR / 2 + 14, H - padBot + 16);
 
-    // Quota totale destra
-    const xQ = W - padRight - 2;
-    ctx.strokeStyle = '#666'; ctx.lineWidth = 1;
+    // Quota totale — linea destra + testo orizzontale in basso
+    const yTop = padTop;
+    const yBot = padTop + totalH * scaleH;
+    const xQ = cx + (maxD / 2) * scaleW + 12;
+
+    ctx.strokeStyle = '#555'; ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(xQ - 5, padTop); ctx.lineTo(xQ + 2, padTop);
-    ctx.moveTo(xQ - 1, padTop); ctx.lineTo(xQ - 1, H - padBot);
-    ctx.moveTo(xQ - 5, H - padBot); ctx.lineTo(xQ + 2, H - padBot);
+    ctx.moveTo(xQ - 4, yTop); ctx.lineTo(xQ + 4, yTop);   // freccia top
+    ctx.moveTo(xQ, yTop); ctx.lineTo(xQ, yBot);             // linea verticale
+    ctx.moveTo(xQ - 4, yBot); ctx.lineTo(xQ + 4, yBot);   // freccia bot
     ctx.stroke();
+
+    // Testo TOT ruotato accanto alla linea
     ctx.save();
-    ctx.fillStyle = '#bbb'; ctx.font = 'bold 10px Courier New'; ctx.textAlign = 'center';
-    ctx.translate(xQ + 11, (padTop + H - padBot) / 2);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 11px Courier New';
+    ctx.textAlign = 'center';
+    ctx.translate(xQ + 16, (yTop + yBot) / 2);
     ctx.rotate(-Math.PI / 2);
     ctx.fillText('TOT ' + totalH.toFixed(1) + ' mm', 0, 0);
     ctx.restore();
