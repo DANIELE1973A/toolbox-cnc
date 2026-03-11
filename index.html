@@ -23,6 +23,7 @@
         .count-badge { font-family: var(--font-mono); font-size: 12px; padding: 5px 12px; border-radius: 100px; background: var(--surface2); color: var(--muted); }
         .sync-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 6px 12px; border-radius: 20px; font-family: var(--font-main); font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; }
         .sync-btn.syncing { color: var(--t1); border-color: var(--t1); }
+        .add-btn { color: var(--t2); border-color: var(--t2); }
 
         .search-wrap { position: relative; margin-bottom: 14px; }
         .search-wrap input { width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--text); font-family: var(--font-main); font-size: 18px; font-weight: 700; padding: 12px 16px 12px 44px; border-radius: 10px; outline: none; -webkit-appearance: none; }
@@ -147,6 +148,10 @@
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
                 Sync
             </button>
+            <button class="sync-btn add-btn" onclick="addNewTool()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Nuovo
+            </button>
         </div>
     </div>
     <div class="search-wrap">
@@ -257,6 +262,44 @@ async function saveTabToFirebase(tabName) {
     }
 }
 
+window.addNewTool = async function() {
+    // Calcola il prossimo numero utensile
+    const existing = DB[activeTab].map(t => parseInt(t['N° Utensile']) || 0);
+    const nextNum = existing.length > 0 ? Math.max(...existing) + 1 : 1;
+
+    const newTool = {
+        'N° Utensile': String(nextNum),
+        'Nome Assembly': 'NUOVO UTENSILE',
+        'Nome Utensile': '',
+        'Descrizione': '',
+        'Codice Catalogo': '',
+        'Produttore': '',
+        'Tipo Utensile': '',
+        'Diametro (mm)': '0',
+        'Lunghezza Totale (mm)': '0',
+        'Prof. Taglio (mm)': '0',
+        'N° Taglienti': '0',
+        'Raggio Angolo (mm)': '0',
+        'Diam. Punta (mm)': '0',
+        'Angolo Conicità (°)': '0',
+        'Angolo Punta (°)': '0',
+        'Codice Produttore': '',
+        'Giri (rpm)': '0',
+        'Avanzamento (mm/min)': '0',
+        'Affondamento (mm/min)': '0',
+    };
+
+    DB[activeTab].unshift(newTool);
+    expandedIdx = 0;
+    searchQuery = '';
+    document.getElementById('search').value = '';
+    render();
+    showToast('✓ Nuovo utensile aggiunto', 'success');
+    await saveTabToFirebase(activeTab);
+    // Scrolla in cima
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
+};
+
 async function uploadPhoto(realIdx, file) {
     showToast('⏳ Elaborazione foto...');
     try {
@@ -328,13 +371,19 @@ function render() {
         const expClass = isExp ? 'expanded-' + color : '';
         const photoUrl = tool['Foto'] || '';
 
+        const HIDDEN_FIELDS = ['Foto', 'Profilo', 'Nome Assembly', 'Angolo Elica (°)', 'Diam. Mandrino (mm)', 'Lunghezza Spalla (mm)', 'Diam. Collo (mm)'];
+        const RENAME_FIELDS = { 'Codice Produttore': 'Codice Inserto' };
+
         const detailRows = Object.entries(tool)
-            .filter(([k]) => k !== 'Foto' && k !== 'Profilo' && !k.toLowerCase().includes('nome assembly'))
-            .map(([k, v]) => `
+            .filter(([k]) => !HIDDEN_FIELDS.some(h => k.toLowerCase() === h.toLowerCase()))
+            .map(([k, v]) => {
+                const label = RENAME_FIELDS[k] || k;
+                return `
                 <div class="detail-row">
-                    <span class="detail-key">${k}</span>
+                    <span class="detail-key">${label}</span>
                     <span class="detail-val" onclick="startEdit(event, ${realIdx}, '${k.replace(/'/g,"\'").replace(/"/g,'&quot;')}')">${v || '-'}</span>
-                </div>`).join('');
+                </div>`;
+            }).join('');
 
         const photoSection = `
             <div class="photo-section">
