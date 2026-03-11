@@ -93,6 +93,43 @@
         .no-results { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 14px; font-weight: 700; }
         .loading-screen { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 15px; font-weight: 700; }
 
+        /* PROFILO MODALE */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; overflow-y: auto; padding: 20px 12px 40px; }
+        .modal-overlay.open { display: block; }
+        .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; max-width: 500px; margin: 0 auto; overflow: hidden; }
+        .modal-header { padding: 18px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .modal-title { font-size: 18px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; }
+        .modal-title span { font-size: 12px; font-family: var(--font-mono); color: var(--muted); display: block; font-weight: 400; text-transform: none; letter-spacing: 1px; margin-top: 2px; }
+        .modal-close { background: var(--surface2); border: none; color: var(--text); width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+
+        /* CANVAS PROFILO */
+        .profile-canvas-wrap { background: var(--bg); padding: 16px; display: flex; justify-content: center; border-bottom: 1px solid var(--border); }
+        canvas#profile-canvas { display: block; }
+
+        /* TABELLA SEGMENTI */
+        .seg-table-wrap { padding: 12px 14px; }
+        .seg-header { display: grid; grid-template-columns: 1fr 1fr 1fr 80px 36px; gap: 5px; margin-bottom: 6px; }
+        .seg-header span { font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); text-align: center; }
+        .seg-row { display: grid; grid-template-columns: 1fr 1fr 1fr 80px 36px; gap: 5px; margin-bottom: 6px; align-items: center; }
+        .seg-raggio-wrap { display: flex; flex-direction: column; gap: 3px; }
+        .seg-pos-btns { display: flex; gap: 3px; }
+        .seg-pos { flex: 1; background: var(--surface2); border: 1px solid var(--border); color: #555; height: 22px; border-radius: 5px; cursor: pointer; font-size: 10px; display: flex; align-items: center; justify-content: center; }
+        .seg-pos-on { background: #1a3a5a; border-color: var(--t1); color: var(--t1); }
+        .seg-input { background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-family: var(--font-mono); font-size: 14px; padding: 8px 6px; border-radius: 8px; text-align: center; outline: none; width: 100%; -webkit-appearance: none; }
+        .seg-input:focus { border-color: var(--t1); }
+        .seg-del { background: #ef444420; border: 1px solid #ef444440; color: #ef4444; width: 32px; height: 36px; border-radius: 8px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .seg-del:active { opacity: 0.7; }
+        .btn-add-seg { width: 100%; padding: 11px; background: var(--surface2); border: 1px dashed var(--border); border-radius: 10px; color: var(--muted); font-family: var(--font-main); font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .btn-add-seg:active { opacity: 0.7; }
+        .btn-save-profile { width: 100%; padding: 14px; background: var(--t1); border: none; border-radius: 12px; color: #fff; font-family: var(--font-main); font-size: 17px; font-weight: 800; cursor: pointer; margin-top: 12px; letter-spacing: 0.5px; }
+        .btn-save-profile:active { opacity: 0.8; }
+        .btn-profilo { width: 100%; padding: 11px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: var(--font-main); font-size: 15px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 8px; }
+        .seg-tag { background: #2a2a2a; border: 1px solid #444; color: #666; width: 32px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+        .seg-tag:active { opacity: 0.7; }
+        .seg-tag-on { background: #7a5a0050; border-color: #fbbf24; color: #fbbf24; }
+        .seg-tagliente { border-color: #fbbf24 !important; color: #fde68a !important; background: #3a2a0a !important; }
+        .seg-input-r { font-size: 12px; opacity: 0.85; }
+
         @keyframes spin { to { transform: rotate(360deg); } }
         .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite; }
         .saving-dot { display: inline-block; width: 6px; height: 6px; background: var(--t2); border-radius: 50%; margin-left: 4px; animation: pulse 1s infinite; }
@@ -126,6 +163,34 @@
 <main id="main"><div class="loading-screen">⏳ Caricamento dati...</div></main>
 <div class="toast" id="toast"></div>
 <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none">
+
+<!-- MODALE PROFILO -->
+<div class="modal-overlay" id="profile-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">Profilo Utensile<span id="profile-modal-subtitle"></span></div>
+            <button class="modal-close" onclick="closeProfileModal()">✕</button>
+        </div>
+        <div class="profile-canvas-wrap">
+            <canvas id="profile-canvas" width="280" height="220"></canvas>
+        </div>
+        <div class="seg-table-wrap">
+            <div class="seg-header">
+                <span>Sopra (mm)</span>
+                <span>Altezza (mm)</span>
+                <span>Sotto (mm)</span>
+                <span>Raggio</span>
+                <span></span>
+            </div>
+            <div id="seg-rows"></div>
+            <button class="btn-add-seg" onclick="addSegRow()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Aggiungi segmento
+            </button>
+            <button class="btn-save-profile" onclick="saveProfile()">💾 Salva profilo</button>
+        </div>
+    </div>
+</div>
 
 <!-- Firebase SDK -->
 <script type="module">
@@ -264,7 +329,7 @@ function render() {
         const photoUrl = tool['Foto'] || '';
 
         const detailRows = Object.entries(tool)
-            .filter(([k]) => k !== 'Foto' && !k.toLowerCase().includes('nome assembly'))
+            .filter(([k]) => k !== 'Foto' && k !== 'Profilo' && !k.toLowerCase().includes('nome assembly'))
             .map(([k, v]) => `
                 <div class="detail-row">
                     <span class="detail-key">${k}</span>
@@ -304,14 +369,10 @@ function render() {
                 ${photoSection}
                 <div class="edit-hint">✏️ Tocca un valore per modificarlo</div>
                 <div class="detail-table">${detailRows}</div>
-                <div class="card-actions">
-                    <button class="btn-copy btn-outline" onclick="event.stopPropagation(); copyText('${nome.replace(/'/g,"\'")}')">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                        Nome
-                    </button>
-                    <button class="btn-copy btn-primary-${color}" onclick="event.stopPropagation(); copyText('${num}')">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                        Numero
+                <div style="padding: 0 14px 14px;">
+                    <button class="btn-profilo" onclick="event.stopPropagation(); openProfileModal(${realIdx})">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                        Profilo utensile ${tool['Profilo'] ? '✓' : ''}
                     </button>
                 </div>
             </div>
@@ -431,6 +492,233 @@ document.getElementById('search').addEventListener('input', e => {
     expandedIdx = null;
     render();
 });
+
+// ---- PROFILO UTENSILE ----
+let profileRealIdx = null;
+let profileSegments = [];
+
+window.openProfileModal = function(realIdx) {
+    profileRealIdx = realIdx;
+    const tool = DB[activeTab][realIdx];
+    const nome = tool['Nome Assembly'] || tool['Nome Utensile'] || '';
+    const num = tool['N° Utensile'] || '';
+    document.getElementById('profile-modal-subtitle').textContent = `T${num} — ${nome}`;
+
+    // Carica segmenti salvati o default
+    profileSegments = tool['Profilo'] ? JSON.parse(JSON.stringify(tool['Profilo'])) : [
+        { sopra: parseFloat(tool['Diametro (mm)']) || 50, altezza: parseFloat(tool['Lunghezza Totale (mm)']) || 40, sotto: parseFloat(tool['Diam. Mandrino (mm)']) || 40 }
+    ];
+
+    renderSegRows();
+    drawProfile();
+    document.getElementById('profile-modal').classList.add('open');
+};
+
+window.closeProfileModal = function() {
+    document.getElementById('profile-modal').classList.remove('open');
+};
+
+window.addSegRow = function() {
+    const last = profileSegments[profileSegments.length - 1];
+    profileSegments.push({ sopra: last ? last.sotto : 20, altezza: 10, sotto: last ? last.sotto : 20, raggio: 0 });
+    renderSegRows();
+    drawProfile();
+};
+
+window.deleteSegRow = function(idx) {
+    if (profileSegments.length <= 1) return;
+    profileSegments.splice(idx, 1);
+    renderSegRows();
+    drawProfile();
+};
+
+window.onSegInput = function(idx, field, val) {
+    profileSegments[idx][field] = parseFloat(val) || 0;
+    drawProfile();
+};
+
+function renderSegRows() {
+    const container = document.getElementById('seg-rows');
+    container.innerHTML = profileSegments.map((seg, i) => {
+        const pos = seg.raggioPos || 'sotto'; // 'sopra', 'sotto', 'entrambi'
+        const tc = seg.tagliente ? 'seg-tagliente' : '';
+        return `
+        <div class="seg-row" id="seg-row-${i}">
+            <input class="seg-input ${tc}" type="number" value="${seg.sopra}" step="0.1" min="0"
+                oninput="onSegInput(${i},'sopra',this.value)" onchange="onSegInput(${i},'sopra',this.value)">
+            <input class="seg-input ${tc}" type="number" value="${seg.altezza}" step="0.1" min="0"
+                oninput="onSegInput(${i},'altezza',this.value)" onchange="onSegInput(${i},'altezza',this.value)">
+            <input class="seg-input ${tc}" type="number" value="${seg.sotto}" step="0.1" min="0"
+                oninput="onSegInput(${i},'sotto',this.value)" onchange="onSegInput(${i},'sotto',this.value)">
+            <div class="seg-raggio-wrap">
+                <input class="seg-input seg-input-r ${tc}" type="number" value="${seg.raggio || 0}" step="0.1" min="0" placeholder="R"
+                    oninput="onSegInput(${i},'raggio',this.value)" onchange="onSegInput(${i},'raggio',this.value)">
+                <div class="seg-pos-btns">
+                    <button class="seg-pos ${pos==='sopra'||pos==='entrambi' ? 'seg-pos-on' : ''}" onclick="toggleRaggioPos(${i},'sopra')" title="Raggio in alto">▲</button>
+                    <button class="seg-pos ${pos==='sotto'||pos==='entrambi' ? 'seg-pos-on' : ''}" onclick="toggleRaggioPos(${i},'sotto')" title="Raggio in basso">▼</button>
+                </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:3px">
+                <button class="seg-del" onclick="deleteSegRow(${i})">✕</button>
+                <button class="seg-tag ${seg.tagliente ? 'seg-tag-on' : ''}" onclick="toggleTagliente(${i})" title="Tagliente">✂</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+window.toggleRaggioPos = function(idx, which) {
+    const seg = profileSegments[idx];
+    const cur = seg.raggioPos || 'sotto';
+    if (which === 'sopra') {
+        seg.raggioPos = cur === 'sopra' ? 'nessuno' : cur === 'sotto' ? 'entrambi' : cur === 'entrambi' ? 'sotto' : 'sopra';
+    } else {
+        seg.raggioPos = cur === 'sotto' ? 'nessuno' : cur === 'sopra' ? 'entrambi' : cur === 'entrambi' ? 'sopra' : 'sotto';
+    }
+    renderSegRows();
+    drawProfile();
+};
+
+window.toggleTagliente = function(idx) {
+    profileSegments[idx].tagliente = !profileSegments[idx].tagliente;
+    renderSegRows();
+    drawProfile();
+};
+
+function drawProfile() {
+    const canvas = document.getElementById('profile-canvas');
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    const segs = profileSegments.filter(s => s.altezza > 0);
+    if (segs.length === 0) return;
+
+    const totalH = segs.reduce((s, r) => s + r.altezza, 0);
+    const maxD = Math.max(...segs.map(s => Math.max(s.sopra, s.sotto)), 1);
+
+    const padTop = 28, padBot = 28, padLeft = 52, padRight = 24;
+    const drawW = W - padLeft - padRight;
+    const drawH = H - padTop - padBot;
+    const scaleH = drawH / totalH;
+    const scaleW = (drawW / 2) / (maxD / 2);
+    const cx = padLeft + drawW / 2;
+
+    // Sfondo
+    ctx.fillStyle = '#111';
+    ctx.fillRect(0, 0, W, H);
+
+    // Asse centrale
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(cx, padTop - 8); ctx.lineTo(cx, H - padBot + 8); ctx.stroke();
+    ctx.setLineDash([]);
+
+    let y = padTop;
+    for (let i = 0; i < segs.length; i++) {
+        const seg = segs[i];
+        const r1 = (seg.sopra / 2) * scaleW;
+        const r2 = (seg.sotto / 2) * scaleW;
+        const h = seg.altezza * scaleH;
+        const raggio = Math.min(seg.raggio || 0, seg.altezza / 2, Math.min(seg.sopra, seg.sotto) / 2);
+        const rs = raggio * Math.min(scaleW, scaleH);
+        const pos = seg.raggioPos || 'sotto';
+        const rSopra = (pos === 'sopra' || pos === 'entrambi') && rs > 1;
+        const rSotto = (pos === 'sotto' || pos === 'entrambi') && rs > 1;
+
+        ctx.beginPath();
+        // Angolo top-right
+        if (rSopra) {
+            ctx.moveTo(cx + r1 - rs, y);
+            ctx.arcTo(cx + r1, y, cx + r1, y + rs, rs);
+        } else {
+            ctx.moveTo(cx + r1, y);
+        }
+        // Angolo bottom-right
+        if (rSotto) {
+            ctx.lineTo(cx + r2, y + h - rs);
+            ctx.arcTo(cx + r2, y + h, cx + r2 - rs, y + h, rs);
+        } else {
+            ctx.lineTo(cx + r2, y + h);
+        }
+        // Fondo
+        if (rSotto) {
+            ctx.lineTo(cx - r2 + rs, y + h);
+            ctx.arcTo(cx - r2, y + h, cx - r2, y + h - rs, rs);
+        } else {
+            ctx.lineTo(cx - r2, y + h);
+        }
+        // Angolo top-left
+        if (rSopra) {
+            ctx.lineTo(cx - r1, y + rs);
+            ctx.arcTo(cx - r1, y, cx - r1 + rs, y, rs);
+        } else {
+            ctx.lineTo(cx - r1, y);
+        }
+        ctx.closePath();
+
+        if (seg.tagliente) {
+            const grad = ctx.createLinearGradient(cx - r1, 0, cx + r1, 0);
+            grad.addColorStop(0, '#7a5a00'); grad.addColorStop(0.35, '#f59e0b');
+            grad.addColorStop(0.5, '#fde68a'); grad.addColorStop(0.65, '#f59e0b'); grad.addColorStop(1, '#7a5a00');
+            ctx.fillStyle = grad; ctx.fill();
+            ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 1.5; ctx.stroke();
+        } else {
+            const grad = ctx.createLinearGradient(cx - r1, 0, cx + r1, 0);
+            grad.addColorStop(0, '#2a4a7a'); grad.addColorStop(0.35, '#4f8ef7');
+            grad.addColorStop(0.5, '#7ab4ff'); grad.addColorStop(0.65, '#4f8ef7'); grad.addColorStop(1, '#2a4a7a');
+            ctx.fillStyle = grad; ctx.fill();
+            ctx.strokeStyle = '#4f8ef7'; ctx.lineWidth = 1.5; ctx.stroke();
+        }
+
+        // Quota altezza — sinistra ben visibile
+        ctx.fillStyle = '#ddd';
+        ctx.font = 'bold 11px Courier New';
+        ctx.textAlign = 'right';
+        ctx.fillText(seg.altezza.toFixed(1), padLeft - 6, y + h / 2 + 4);
+
+        // Separazione segmenti
+        if (i < segs.length - 1) {
+            ctx.strokeStyle = '#444'; ctx.lineWidth = 0.5; ctx.setLineDash([2, 4]);
+            ctx.beginPath(); ctx.moveTo(padLeft, y + h); ctx.lineTo(W - padRight - 18, y + h); ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        y += h;
+    }
+
+    // Diametro sopra/sotto
+    ctx.fillStyle = '#ddd'; ctx.font = 'bold 11px Courier New'; ctx.textAlign = 'center';
+    const firstR = (segs[0].sopra / 2) * scaleW;
+    ctx.fillText('Ø' + segs[0].sopra.toFixed(1), cx + firstR / 2 + 14, padTop - 8);
+    const lastSeg = segs[segs.length - 1];
+    const lastR = (lastSeg.sotto / 2) * scaleW;
+    ctx.fillText('Ø' + lastSeg.sotto.toFixed(1), cx + lastR / 2 + 14, H - padBot + 16);
+
+    // Quota totale destra
+    const xQ = W - padRight - 2;
+    ctx.strokeStyle = '#666'; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(xQ - 5, padTop); ctx.lineTo(xQ + 2, padTop);
+    ctx.moveTo(xQ - 1, padTop); ctx.lineTo(xQ - 1, H - padBot);
+    ctx.moveTo(xQ - 5, H - padBot); ctx.lineTo(xQ + 2, H - padBot);
+    ctx.stroke();
+    ctx.save();
+    ctx.fillStyle = '#bbb'; ctx.font = 'bold 10px Courier New'; ctx.textAlign = 'center';
+    ctx.translate(xQ + 11, (padTop + H - padBot) / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText('TOT ' + totalH.toFixed(1) + ' mm', 0, 0);
+    ctx.restore();
+}
+
+window.saveProfile = async function() {
+    DB[activeTab][profileRealIdx]['Profilo'] = JSON.parse(JSON.stringify(profileSegments));
+    showToast('💾 Salvataggio profilo...');
+    await saveTabToFirebase(activeTab);
+    showToast('✓ Profilo salvato', 'success');
+    closeProfileModal();
+    render();
+};
 
 window.loadFromFirebase = loadFromFirebase;
 
