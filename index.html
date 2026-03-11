@@ -20,6 +20,7 @@
         .logo { font-size: 26px; font-weight: 900; letter-spacing: -0.5px; line-height: 1; }
         .logo span { font-family: var(--font-mono); font-size: 13px; display: block; font-weight: 700; letter-spacing: 3px; color: var(--muted); margin-top: 2px; }
         .header-right { display: flex; align-items: center; gap: 8px; }
+        .header-right-btns { display: flex; flex-direction: column; gap: 5px; }
         .count-badge { font-family: var(--font-mono); font-size: 12px; padding: 5px 12px; border-radius: 100px; background: var(--surface2); color: var(--muted); }
         .sync-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 6px 12px; border-radius: 20px; font-family: var(--font-main); font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; }
         .sync-btn.syncing { color: var(--t1); border-color: var(--t1); }
@@ -44,7 +45,7 @@
         .tool-card.expanded-mit { border-color: var(--mit); }
         .card-header { padding: 14px; cursor: pointer; display: flex; gap: 12px; align-items: flex-start; user-select: none; }
         .card-header:active { background: var(--surface2); }
-        .tool-num { width: 52px; height: 52px; border-radius: 10px; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--muted); flex-shrink: 0; transition: background 0.2s, color 0.2s; }
+        .tool-num { width: 52px; height: 52px; border-radius: 10px; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 17px; font-weight: 900; color: var(--muted); flex-shrink: 0; transition: background 0.2s, color 0.2s; }
         .expanded-t1 .tool-num { background: var(--t1); color: #fff; }
         .expanded-t2 .tool-num { background: var(--t2); color: #0f0f0f; }
         .expanded-mit .tool-num { background: var(--mit); color: #fff; }
@@ -125,6 +126,7 @@
         .btn-save-profile { width: 100%; padding: 14px; background: var(--t1); border: none; border-radius: 12px; color: #fff; font-family: var(--font-main); font-size: 17px; font-weight: 800; cursor: pointer; margin-top: 12px; letter-spacing: 0.5px; }
         .btn-save-profile:active { opacity: 0.8; }
         .btn-profilo { width: 100%; padding: 11px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: var(--font-main); font-size: 15px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 8px; }
+        .btn-delete { border-color: #7f1d1d; color: #f87171; background: #1a0a0a; }
         .seg-tag { background: #2a2a2a; border: 1px solid #444; color: #666; width: 32px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
         .seg-tag:active { opacity: 0.7; }
         .seg-tag-on { background: #7a5a0050; border-color: #fbbf24; color: #fbbf24; }
@@ -144,14 +146,16 @@
         <div class="logo">TOOLBOX CNC<span>ARCHIVIO UTENSILI</span></div>
         <div class="header-right">
             <div class="count-badge" id="count-badge">...</div>
-            <button class="sync-btn" id="sync-btn" onclick="loadFromFirebase()">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-                Sync
-            </button>
-            <button class="sync-btn add-btn" onclick="addNewTool()">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                Nuovo
-            </button>
+            <div class="header-right-btns">
+                <button class="sync-btn" id="sync-btn" onclick="loadFromFirebase()">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                    Sync
+                </button>
+                <button class="sync-btn add-btn" onclick="addNewTool()">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Nuovo
+                </button>
+            </div>
         </div>
     </div>
     <div class="search-wrap">
@@ -295,9 +299,31 @@ window.addNewTool = async function() {
     document.getElementById('search').value = '';
     render();
     showToast('✓ Nuovo utensile aggiunto', 'success');
+    // WhatsApp notifica nuovo utensile
+    const tab = activeTab === 'toshiba1' ? 'Toshiba 1' : activeTab === 'toshiba2' ? 'Toshiba 2' : 'Mitsubishi';
+    const msg = `🔧 TOOLBOX CNC - Nuovo utensile\n\nMacchina: ${tab}\nUtensile: T${nextNum} - NUOVO UTENSILE\nAzione: Aggiunto nuovo utensile`;
+    window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
     await saveTabToFirebase(activeTab);
-    // Scrolla in cima
     setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
+};
+
+window.deleteTool = async function(realIdx) {
+    const tool = DB[activeTab][realIdx];
+    const nome = tool['Nome Assembly'] || tool['Nome Utensile'] || '';
+    const num = tool['N° Utensile'] || '';
+    const tab = activeTab === 'toshiba1' ? 'Toshiba 1' : activeTab === 'toshiba2' ? 'Toshiba 2' : 'Mitsubishi';
+
+    if (!confirm(`Eliminare T${num} - ${nome}?`)) return;
+
+    DB[activeTab].splice(realIdx, 1);
+    expandedIdx = null;
+    render();
+    showToast('🗑 Utensile eliminato', 'error');
+
+    const msg = `🔧 TOOLBOX CNC - Eliminazione\n\nMacchina: ${tab}\nUtensile: T${num} - ${nome}\nAzione: Utensile ELIMINATO dal database`;
+    window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+
+    await saveTabToFirebase(activeTab);
 };
 
 async function uploadPhoto(realIdx, file) {
@@ -422,6 +448,10 @@ function render() {
                     <button class="btn-profilo" onclick="event.stopPropagation(); openProfileModal(${realIdx})">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                         Profilo utensile ${tool['Profilo'] ? '✓' : ''}
+                    </button>
+                    <button class="btn-profilo btn-delete" onclick="event.stopPropagation(); deleteTool(${realIdx})">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                        Elimina utensile
                     </button>
                 </div>
             </div>
