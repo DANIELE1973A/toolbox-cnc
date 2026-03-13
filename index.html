@@ -244,6 +244,32 @@ async function loadFromFirebase() {
                 await setDoc(docRef, { rows: DB[tab] });
             }
         }
+        // Auto-popola N° Correttore Raggio e Lunghezza per utensili che non li hanno
+        let needsSave = false;
+        for (const tab of tabs) {
+            for (const tool of DB[tab]) {
+                if (tool['N° Correttore Raggio'] === undefined) {
+                    const num = tool['N° Utensile'] || '';
+                    tool['N° Correttore Raggio'] = num;
+                    tool['N° Correttore Lunghezza'] = num;
+                    needsSave = true;
+                }
+            }
+        }
+        if (needsSave) { for (const tab of tabs) await saveTabToFirebase(tab); }
+        // Auto-popola i nuovi campi correttore per utensili esistenti
+        let needsSave = false;
+        for (const tab of tabs) {
+            for (const tool of DB[tab]) {
+                if (tool['N\u00b0 Correttore Raggio'] === undefined) {
+                    const num = tool['N\u00b0 Utensile'] || '';
+                    tool['N\u00b0 Correttore Raggio'] = num;
+                    tool['N\u00b0 Correttore Lunghezza'] = num;
+                    needsSave = true;
+                }
+            }
+        }
+        if (needsSave) { for (const tab of tabs) await saveTabToFirebase(tab); }
         render();
         showToast(loaded ? '✓ Dati aggiornati' : '✓ Dati inizializzati', 'success');
     } catch(e) {
@@ -273,6 +299,8 @@ window.addNewTool = async function() {
 
     const newTool = {
         'N° Utensile': String(nextNum),
+        'N° Correttore Raggio': String(nextNum),
+        'N° Correttore Lunghezza': String(nextNum),
         'Nome Assembly': 'NUOVO UTENSILE',
         'Nome Utensile': '',
         'Descrizione': '',
@@ -400,7 +428,14 @@ function render() {
         const HIDDEN_FIELDS = ['Foto', 'Profilo', 'Nome Assembly', 'Angolo Elica (°)', 'Diam. Mandrino (mm)', 'Lunghezza Spalla (mm)', 'Diam. Collo (mm)'];
         const RENAME_FIELDS = { 'Codice Produttore': 'Codice Inserto' };
 
-        const detailRows = Object.entries(tool)
+        // Riordina: N° Correttore Raggio e Lunghezza subito dopo N° Utensile
+        const PRIORITY_ORDER = ['N° Utensile', 'N° Correttore Raggio', 'N° Correttore Lunghezza'];
+        const allEntries = Object.entries(tool).filter(([k]) => !HIDDEN_FIELDS.some(h => k.toLowerCase() === h.toLowerCase()));
+        const priorityEntries = PRIORITY_ORDER.map(pk => allEntries.find(([k]) => k === pk)).filter(Boolean);
+        const otherEntries = allEntries.filter(([k]) => !PRIORITY_ORDER.includes(k));
+        const sortedEntries = [...priorityEntries, ...otherEntries];
+
+        const detailRows = sortedEntries
             .filter(([k]) => !HIDDEN_FIELDS.some(h => k.toLowerCase() === h.toLowerCase()))
             .map(([k, v]) => {
                 const label = RENAME_FIELDS[k] || k;
