@@ -201,6 +201,10 @@
     </div>
 </div>
 
+<!-- EmailJS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>emailjs.init('ANShSSPasn5Y6D0Fu');</script>
+
 <!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
@@ -314,10 +318,8 @@ window.addNewTool = async function() {
     document.getElementById('search').value = '';
     render();
     showToast('✓ Nuovo utensile aggiunto', 'success');
-    // WhatsApp notifica nuovo utensile
     const tab = activeTab === 'toshiba1' ? 'Toshiba 1' : activeTab === 'toshiba2' ? 'Toshiba 2' : 'Mitsubishi';
-    const msg = `🔧 TOOLBOX CNC - Nuovo utensile\n\nMacchina: ${tab}\nUtensile: T${nextNum} - NUOVO UTENSILE\nAzione: Aggiunto nuovo utensile`;
-    window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+    sendEmail(tab, String(nextNum), 'NUOVO UTENSILE', 'Aggiunto nuovo utensile', `T${nextNum} aggiunto al database`);
     await saveTabToFirebase(activeTab);
     setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
 };
@@ -335,8 +337,7 @@ window.deleteTool = async function(realIdx) {
     render();
     showToast('🗑 Utensile eliminato', 'error');
 
-    const msg = `🔧 TOOLBOX CNC - Eliminazione\n\nMacchina: ${tab}\nUtensile: T${num} - ${nome}\nAzione: Utensile ELIMINATO dal database`;
-    window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+    sendEmail(tab, num, nome, 'Utensile ELIMINATO', `T${num} - ${nome} rimosso dal database`);
 
     await saveTabToFirebase(activeTab);
 };
@@ -502,7 +503,9 @@ window.startEdit = function(event, realIdx, fieldName) {
         showToast('💾 Salvataggio...');
         await saveTabToFirebase(activeTab);
         showToast('✓ Salvato', 'success');
-        sendWhatsApp(fieldName, oldVal, newVal, DB[activeTab][realIdx]);
+        const _t = DB[activeTab][realIdx];
+        const _tab = activeTab === 'toshiba1' ? 'Toshiba 1' : activeTab === 'toshiba2' ? 'Toshiba 2' : 'Mitsubishi';
+        sendEmail(_tab, _t['N° Utensile'] || '', _t['Nome Assembly'] || _t['Nome Utensile'] || '', 'Modifica campo', `${fieldName}: ${oldVal || '-'} → ${newVal}`);
     };
 
     input.onblur = save;
@@ -512,13 +515,19 @@ window.startEdit = function(event, realIdx, fieldName) {
     input.select();
 };
 
-// ---- WHATSAPP ----
-function sendWhatsApp(field, oldVal, newVal, tool) {
-    const nome = tool['Nome Assembly'] || tool['Nome Utensile'] || '';
-    const num = tool['N° Utensile'] || '';
-    const tab = activeTab === 'toshiba1' ? 'Toshiba 1' : activeTab === 'toshiba2' ? 'Toshiba 2' : 'Mitsubishi';
-    const msg = `🔧 TOOLBOX CNC - Modifica\n\nMacchina: ${tab}\nUtensile: T${num} - ${nome}\nCampo: ${field}\nVecchio: ${oldVal || '-'}\nNuovo: ${newVal}`;
-    window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+// ---- EMAIL ----
+function sendEmail(macchina, num_utensile, nome_utensile, azione, dettaglio) {
+    emailjs.send('service_f2hu5rr', '5tjs6zf', {
+        macchina: macchina,
+        num_utensile: num_utensile,
+        nome_utensile: nome_utensile,
+        azione: azione,
+        dettaglio: dettaglio
+    }).then(() => {
+        console.log('Email inviata');
+    }).catch(err => {
+        console.error('Errore email:', err);
+    });
 }
 
 // ---- FOTO ----
