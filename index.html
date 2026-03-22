@@ -70,6 +70,18 @@
         .btn-photo { width: 100%; padding: 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--font-main); font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .btn-photo:active { opacity: 0.7; }
 
+        /* LIGHTBOX foto a tutto schermo */
+        .lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 999; align-items: center; justify-content: center; }
+        .lightbox.open { display: flex; }
+        .lightbox img { max-width: 96vw; max-height: 96vh; object-fit: contain; border-radius: 8px; }
+        .lightbox-close { position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.15); border: none; color: #fff; font-size: 28px; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+        /* Foto miniatura su codice inserto */
+        .foto-inserto-wrap { display: flex; align-items: center; gap: 6px; justify-content: flex-end; max-width: 60%; }
+        .foto-inserto-thumb { width: 36px; height: 36px; object-fit: cover; border-radius: 5px; cursor: pointer; border: 1px solid var(--border); flex-shrink: 0; }
+        .btn-foto-inserto { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--muted); padding: 3px 7px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+        .btn-foto-inserto:active { opacity: 0.7; }
+
         .edit-hint { font-size: 11px; color: var(--muted); text-align: center; padding: 6px; font-style: italic; }
         .detail-table { padding: 10px 14px; }
         .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); }
@@ -205,6 +217,13 @@
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>emailjs.init('ANShSSPasn5Y6D0Fu');</script>
 
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+    <img id="lightbox-img" src="" alt="">
+</div>
+<input type="file" id="foto-inserto-input" accept="image/*" capture="environment" style="display:none">
+
 <!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
@@ -296,6 +315,7 @@ window.addNewTool = async function() {
         'Nome Utensile': '',
         'Descrizione': '',
         'Codice Catalogo': '',
+        'Codice Viti': '',
         'Produttore': '',
         'Tipo Utensile': '',
         'Diametro (mm)': '0',
@@ -413,20 +433,38 @@ function render() {
         const expClass = isExp ? 'expanded-' + color : '';
         const photoUrl = tool['Foto'] || '';
 
-        const HIDDEN_FIELDS = ['Foto', 'Profilo', 'Nome Assembly', 'Angolo Elica (°)', 'Diam. Mandrino (mm)', 'Lunghezza Spalla (mm)', 'Diam. Collo (mm)'];
+        const HIDDEN_FIELDS = ['Foto', 'Foto Inserto', 'Profilo', 'Nome Assembly', 'Angolo Elica (°)', 'Diam. Mandrino (mm)', 'Lunghezza Spalla (mm)', 'Diam. Collo (mm)'];
         const RENAME_FIELDS = { 'Codice Produttore': 'Codice Inserto' };
+        const FOTO_INSERTO_FIELD = 'Foto Inserto';
 
         // Riordina: N° Correttore Raggio e Lunghezza subito dopo N° Utensile
         const PRIORITY_ORDER = ['N° Utensile', 'N° Correttore Raggio', 'N° Correttore Lunghezza'];
+        // Codice Viti visibile nella tabella dettagli normalmente
         const allEntries = Object.entries(tool).filter(([k]) => !HIDDEN_FIELDS.some(h => k.toLowerCase() === h.toLowerCase()));
         const priorityEntries = PRIORITY_ORDER.map(pk => allEntries.find(([k]) => k === pk)).filter(Boolean);
         const otherEntries = allEntries.filter(([k]) => !PRIORITY_ORDER.includes(k));
         const sortedEntries = [...priorityEntries, ...otherEntries];
 
+        const fotoInserto = tool['Foto Inserto'] || '';
         const detailRows = sortedEntries
-            .filter(([k]) => !HIDDEN_FIELDS.some(h => k.toLowerCase() === h.toLowerCase()))
+            .filter(([k]) => !HIDDEN_FIELDS.some(h => k.toLowerCase() === h.toLowerCase()) && k !== 'Foto Inserto')
             .map(([k, v]) => {
                 const label = RENAME_FIELDS[k] || k;
+                // Campo Codice Inserto: aggiungi miniatura foto + bottone
+                if (k === 'Codice Produttore') {
+                    const thumbHtml = fotoInserto
+                        ? `<img src="${fotoInserto}" class="foto-inserto-thumb" onclick="openLightbox('${fotoInserto}')">`
+                        : '';
+                    return `
+                <div class="detail-row">
+                    <span class="detail-key">${label}</span>
+                    <span class="foto-inserto-wrap">
+                        ${thumbHtml}
+                        <button class="btn-foto-inserto" onclick="openFotoInserto(${realIdx})">📷</button>
+                        <span class="detail-val" style="max-width:none" onclick="startEdit(event, ${realIdx}, '${k.replace(/'/g,"\'").replace(/"/g,'&quot;')}')">${v || '-'}</span>
+                    </span>
+                </div>`;
+                }
                 return `
                 <div class="detail-row">
                     <span class="detail-key">${label}</span>
@@ -437,7 +475,7 @@ function render() {
         const photoSection = `
             <div class="photo-section">
                 ${photoUrl
-                    ? `<img src="${photoUrl}" class="photo-preview" onclick="openPhotoInput(${realIdx})">`
+                    ? `<img src="${photoUrl}" class="photo-preview" onclick="openLightbox('${photoUrl}')" style="cursor:zoom-in;">`
                     : `<div class="photo-placeholder" onclick="openPhotoInput(${realIdx})">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                         Tocca per aggiungere foto
@@ -529,6 +567,38 @@ function sendEmail(macchina, num_utensile, nome_utensile, azione, dettaglio) {
         console.error('Errore email:', err);
     });
 }
+
+// ---- LIGHTBOX ----
+window.openLightbox = function(src) {
+    document.getElementById('lightbox-img').src = src;
+    document.getElementById('lightbox').classList.add('open');
+};
+window.closeLightbox = function() {
+    document.getElementById('lightbox').classList.remove('open');
+    document.getElementById('lightbox-img').src = '';
+};
+
+// ---- FOTO INSERTO ----
+let currentFotoInsertoIdx = null;
+window.openFotoInserto = function(realIdx) {
+    currentFotoInsertoIdx = realIdx;
+    document.getElementById('foto-inserto-input').click();
+};
+document.getElementById('foto-inserto-input').addEventListener('change', async function(e) {
+    const file = e.target.files[0];
+    if (!file || currentFotoInsertoIdx === null) return;
+    this.value = '';
+    showToast('⏳ Elaborazione foto inserto...');
+    try {
+        const resized = await resizeImage(file, 400); // miniatura ancora più piccola
+        DB[activeTab][currentFotoInsertoIdx]['Foto Inserto'] = resized;
+        await saveTabToFirebase(activeTab);
+        render();
+        showToast('✓ Foto inserto salvata!', 'success');
+    } catch(e) {
+        showToast('Errore foto inserto', 'error');
+    }
+});
 
 // ---- FOTO ----
 window.openPhotoInput = function(realIdx) {
