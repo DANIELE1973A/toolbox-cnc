@@ -204,6 +204,14 @@
     </div>
 </div>
 
+<!-- EmailJS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+    window.addEventListener('load', function() {
+        emailjs.init('ANShSSPasn5Y6D0Fu');
+    });
+</script>
+
 <!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
@@ -529,8 +537,13 @@ function sendEmail(macchina, num_utensile, nome_utensile, azione, dettaglio) {
         'h:X-Priority': '1',
         'h:X-MSMail-Priority': 'High',
         'h:Importance': 'High'
-    }).then(() => console.log('Email inviata'))
-      .catch(err => console.error('Errore email:', err));
+    }).then(() => {
+        console.log('Email inviata');
+        showToast('📧 Email inviata', 'success');
+    }).catch(err => {
+        console.error('Errore email:', err);
+        showToast('❌ Errore email: ' + (err.text || err.message || JSON.stringify(err)), 'error');
+    });
 }
 
 // ---- FOTO ----
