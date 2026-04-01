@@ -207,8 +207,10 @@
 <!-- EmailJS SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
-    window.addEventListener('load', function() {
-        emailjs.init('ANShSSPasn5Y6D0Fu');
+    // EmailJS v4: init con oggetto
+    document.addEventListener('DOMContentLoaded', function() {
+        emailjs.init({ publicKey: 'ANShSSPasn5Y6D0Fu' });
+        console.log('EmailJS inizializzato');
     });
 </script>
 
@@ -527,8 +529,10 @@ window.toggleEmailNotify = function() {
 };
 
 function sendEmail(macchina, num_utensile, nome_utensile, azione, dettaglio) {
+    console.log('sendEmail chiamata, enabled:', emailNotifyEnabled);
     if (!emailNotifyEnabled) return;
-    emailjs.send('service_f2hu5rr', 'template_a542sac', {
+    if (!window.emailjs) { showToast('❌ EmailJS non caricato', 'error'); return; }
+    window.emailjs.send('service_f2hu5rr', 'template_a542sac', {
         macchina: macchina,
         num_utensile: num_utensile,
         nome_utensile: nome_utensile,
