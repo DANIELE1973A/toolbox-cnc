@@ -426,12 +426,7 @@ function render() {
             .filter(([k]) => !HIDDEN_FIELDS.some(h => k.toLowerCase() === h.toLowerCase()))
             .map(([k, v]) => {
     const label = RENAME_FIELDS[k] || k;
-    return `<div class="detail-row">
-        <span class="detail-key">${label}</span>
-        <span class="detail-val" onclick="startEdit(event, ${realIdx}, '${k.replace(/'/g,"\'").replace(/"/g,'&quot;')}')">${v || '-'}</span>
-    </div>`;
-}).join('');
-                
+    
              
                    
                
