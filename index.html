@@ -69,6 +69,12 @@
         .photo-placeholder { width: 100%; height: 90px; background: var(--surface2); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 13px; font-weight: 700; margin-bottom: 8px; border: 1px dashed var(--border); cursor: pointer; gap: 8px; }
         .btn-photo { width: 100%; padding: 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--font-main); font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .btn-photo:active { opacity: 0.7; }
+        #lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:9999; align-items:center; justify-content:center; }
+        #lightbox.active { display:flex; }
+        #lightbox img { max-width:95vw; max-height:90vh; object-fit:contain; border-radius:8px; }
+        #lightbox-close { position:fixed; top:16px; right:20px; background:none; border:none; color:#fff; font-size:36px; cursor:pointer; z-index:10000; line-height:1; }
+        .btn-inserto-foto { background:var(--surface2); border:1px solid var(--border); border-radius:6px; color:var(--muted); font-size:12px; cursor:pointer; padding:2px 6px; margin-left:6px; vertical-align:middle; }
+        .inserto-thumb { width:32px; height:32px; object-fit:cover; border-radius:4px; vertical-align:middle; margin-left:6px; cursor:pointer; border:1px solid var(--border); }
 
         .edit-hint { font-size: 11px; color: var(--muted); text-align: center; padding: 6px; font-style: italic; }
         .detail-table { padding: 10px 14px; }
@@ -175,6 +181,11 @@
 <main id="main"><div class="loading-screen">⏳ Caricamento dati...</div></main>
 <div class="toast" id="toast"></div>
 <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none">
+<input type="file" id="photo-inserto-input" accept="image/*" capture="environment" style="display:none">
+<div id="lightbox" onclick="closeLightbox()">
+    <button id="lightbox-close" onclick="closeLightbox()">✕</button>
+    <img id="lightbox-img" src="" alt="">
+</div>
 
 <!-- MODALE PROFILO -->
 <div class="modal-overlay" id="profile-modal">
@@ -415,17 +426,27 @@ function render() {
             .filter(([k]) => !HIDDEN_FIELDS.some(h => k.toLowerCase() === h.toLowerCase()))
             .map(([k, v]) => {
                 const label = RENAME_FIELDS[k] || k;
+                const isInserto = (label === 'Codice Inserto');
+                const insertoThumb = isInserto && tool['Foto Inserto']
+                    ? `<img src="${tool['Foto Inserto']}" class="inserto-thumb" onclick="openLightbox('${tool['Foto Inserto']}')">`
+                    : '';
+                const insertoBtn = isInserto
+                    ? `<button class="btn-inserto-foto" onclick="event.stopPropagation();openInsertoInput(${realIdx})">📷</button>`
+                    : '';
                 return `
                 <div class="detail-row">
                     <span class="detail-key">${label}</span>
-                    <span class="detail-val" onclick="startEdit(event, ${realIdx}, '${k.replace(/'/g,"\'").replace(/"/g,'&quot;')}')">${v || '-'}</span>
+                    <span style="display:flex;align-items:center;justify-content:flex-end;gap:4px;max-width:70%">
+                        <span class="detail-val" style="max-width:100%" onclick="startEdit(event, ${realIdx}, '${k.replace(/'/g,"\'").replace(/"/g,'&quot;')}')">${v || '-'}</span>
+                        ${insertoThumb}${insertoBtn}
+                    </span>
                 </div>`;
             }).join('');
 
         const photoSection = `
             <div class="photo-section">
                 ${photoUrl
-                    ? `<img src="${photoUrl}" class="photo-preview" onclick="openPhotoInput(${realIdx})">`
+                    ? `<img src="${photoUrl}" class="photo-preview" style="cursor:zoom-in" onclick="openLightbox('${photoUrl}')">`
                     : `<div class="photo-placeholder" onclick="openPhotoInput(${realIdx})">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                         Tocca per aggiungere foto
@@ -551,9 +572,37 @@ function sendEmail(macchina, num_utensile, nome_utensile, azione, dettaglio) {
 }
 
 // ---- FOTO ----
+document.getElementById('photo-inserto-input').addEventListener('change', async function(e) {
+    const file = e.target.files[0];
+    if (!file || currentInsertoRealIdx === null) return;
+    showToast('⏳ Elaborazione foto inserto...');
+    try {
+        const resized = await resizeImage(file, 400);
+        DB[activeTab][currentInsertoRealIdx]['Foto Inserto'] = resized;
+        await saveTabToFirebase(activeTab);
+        showToast('✓ Foto inserto salvata!', 'success');
+        renderTools();
+    } catch(err) { showToast('Errore foto inserto', 'error'); }
+    this.value = '';
+});
+
 window.openPhotoInput = function(realIdx) {
     currentPhotoRealIdx = realIdx;
     document.getElementById('photo-input').click();
+};
+
+window.openLightbox = function(src) {
+    document.getElementById('lightbox-img').src = src;
+    document.getElementById('lightbox').classList.add('active');
+};
+window.closeLightbox = function() {
+    document.getElementById('lightbox').classList.remove('active');
+};
+
+let currentInsertoRealIdx = null;
+window.openInsertoInput = function(realIdx) {
+    currentInsertoRealIdx = realIdx;
+    document.getElementById('photo-inserto-input').click();
 };
 
 document.getElementById('photo-input').addEventListener('change', async function(e) {
