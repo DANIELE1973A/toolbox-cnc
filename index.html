@@ -427,8 +427,8 @@ function render() {
             .map(([k, v]) => {
                 const label = RENAME_FIELDS[k] || k;
                 const isInserto = (label === 'Codice Inserto');
-                const insertoThumb = isInserto && tool['Codice Vite']
-                    ? `<img src="${tool['Codice Vite']}" class="inserto-thumb" onclick="openLightbox('${tool['Codice Vite']}')">`
+                const insertoThumb = isInserto && tool['Foto inserto']
+                    ? `<img src="${tool['Foto inserto']}" class="inserto-thumb" onclick="openLightbox('${tool['Foto inserto']}')">`
                     : '';
                 const insertoBtn = isInserto
                     ? `<button class="btn-inserto-foto" onclick="event.stopPropagation();openInsertoInput(${realIdx})">📷</button>`
@@ -575,14 +575,14 @@ function sendEmail(macchina, num_utensile, nome_utensile, azione, dettaglio) {
 document.getElementById('photo-inserto-input').addEventListener('change', async function(e) {
     const file = e.target.files[0];
     if (!file || currentInsertoRealIdx === null) return;
-    showToast('⏳ Elaborazione Codice Vite...');
+    showToast('⏳ Elaborazione Foto inserto...');
     try {
         const resized = await resizeImage(file, 400);
-        DB[activeTab][currentInsertoRealIdx]['Codice Vite'] = resized;
+        DB[activeTab][currentInsertoRealIdx]['Foto inserto'] = resized;
         await saveTabToFirebase(activeTab);
-        showToast('✓ Codice Vite salvata!', 'success');
+        showToast('✓ Foto inserto salvata!', 'success');
         renderTools();
-    } catch(err) { showToast('Errore Codice Vite', 'error'); }
+    } catch(err) { showToast('Errore Foto inserto', 'error'); }
     this.value = '';
 });
 
