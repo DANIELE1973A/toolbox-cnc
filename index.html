@@ -419,17 +419,20 @@ function render() {
         const expClass = isExp ? 'expanded-' + color : '';
         const photoUrl = tool['Foto'] || '';
 
-        const HIDDEN_FIELDS = [ 'Foto Inserto', 'Foto', 'Profilo', 'Nome Assembly', 'Angolo Elica (°)', 'Diam. Mandrino (mm)', 'Lunghezza Spalla (mm)', 'Diam. Collo (mm)'];
+        const HIDDEN_FIELDS = ['Foto', 'Profilo', 'Nome Assembly', 'Angolo Elica (°)', 'Diam. Mandrino (mm)', 'Lunghezza Spalla (mm)', 'Diam. Collo (mm)'];
         const RENAME_FIELDS = { 'Codice Produttore': 'Codice Inserto' };
 
         const detailRows = Object.entries(tool)
             .filter(([k]) => !HIDDEN_FIELDS.some(h => k.toLowerCase() === h.toLowerCase()))
             .map(([k, v]) => {
-    const label = RENAME_FIELDS[k] || k;
-    
-             
-                   
-               
+                const label = RENAME_FIELDS[k] || k;
+                const isInserto = (label === 'Codice Inserto');
+                const insertoThumb = isInserto && tool['Foto Inserto']
+                    ? `<img src="${tool['Foto Inserto']}" class="inserto-thumb" onclick="openLightbox('${tool['Foto Inserto']}')">`
+                    : '';
+                const insertoBtn = isInserto
+                    ? `<button class="btn-inserto-foto" onclick="event.stopPropagation();openInsertoInput(${realIdx})">📷</button>`
+                    : '';
                 return `
                 <div class="detail-row">
                     <span class="detail-key">${label}</span>
@@ -578,7 +581,7 @@ document.getElementById('photo-inserto-input').addEventListener('change', async 
         DB[activeTab][currentInsertoRealIdx]['Foto Inserto'] = resized;
         await saveTabToFirebase(activeTab);
         showToast('✓ Foto inserto salvata!', 'success');
-        render();
+        renderTools();
     } catch(err) { showToast('Errore foto inserto', 'error'); }
     this.value = '';
 });
