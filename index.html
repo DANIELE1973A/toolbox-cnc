@@ -434,15 +434,7 @@ function render() {
                 
                 
                 
-                return `
-                <div class="detail-row">
-                    <span class="detail-key">${label}</span>
-                    <span style="display:flex;align-items:center;justify-content:flex-end;gap:4px;max-width:70%">
-                        <span class="detail-val" style="max-width:100%" onclick="startEdit(event, ${realIdx}, '${k.replace(/'/g,"\'").replace(/"/g,'&quot;')}')">${v || '-'}</span>
-                        ${insertoThumb}${insertoBtn}
-                    </span>
-                </div>`;
-            }).join('');
+                
 
         const photoSection = `
             <div class="photo-section">
