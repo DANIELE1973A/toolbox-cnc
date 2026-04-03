@@ -419,7 +419,7 @@ function render() {
         const expClass = isExp ? 'expanded-' + color : '';
         const photoUrl = tool['Foto'] || '';
 
-        const HIDDEN_FIELDS = ['Foto', 'Profilo', 'Nome Assembly', 'Angolo Elica (°)', 'Diam. Mandrino (mm)', 'Lunghezza Spalla (mm)', 'Diam. Collo (mm)'];
+        const HIDDEN_FIELDS = ['Foto Inserto', 'Foto', 'Profilo', 'Nome Assembly', 'Angolo Elica (°)', 'Diam. Mandrino (mm)', 'Lunghezza Spalla (mm)', 'Diam. Collo (mm)'];
         const RENAME_FIELDS = { 'Codice Produttore': 'Codice Inserto' };
 
         const detailRows = Object.entries(tool)
