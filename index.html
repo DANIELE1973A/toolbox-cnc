@@ -581,7 +581,7 @@ document.getElementById('photo-inserto-input').addEventListener('change', async 
         DB[activeTab][currentInsertoRealIdx]['Foto Inserto'] = resized;
         await saveTabToFirebase(activeTab);
         showToast('✓ Foto inserto salvata!', 'success');
-        renderTools();
+        render();
     } catch(err) { showToast('Errore foto inserto', 'error'); }
     this.value = '';
 });
