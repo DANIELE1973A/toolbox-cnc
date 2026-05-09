@@ -362,6 +362,7 @@ async function uploadPhoto(realIdx, file) {
         const resized = await resizeImage(file, 600);
         DB[activeTab][realIdx]['Foto'] = resized;
         await saveTabToFirebase(activeTab);
+        await new Promise(resolve => setTimeout(resolve, 1000));
         render();
         showToast('✓ Foto salvata!', 'success');
     } catch(e) {
@@ -587,6 +588,7 @@ document.getElementById('photo-inserto-input').addEventListener('change', async 
         const resized = await resizeImage(file, 400);
         DB[activeTab][currentInsertoRealIdx]['Foto inserto'] = resized;
         await saveTabToFirebase(activeTab);
+        await new Promise(resolve => setTimeout(resolve, 1000));
         showToast('✓ Foto inserto salvata!', 'success');
         render();
     } catch(err) { showToast('Errore Foto inserto', 'error'); }
