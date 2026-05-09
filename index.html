@@ -249,10 +249,12 @@ let activeTab = 'toshiba1';
 let searchQuery = '';
 let expandedIdx = null;
 let currentPhotoRealIdx = null;
+let savingQueue = Promise.resolve(); // Coda salvataggi    
 
 // ---- FIREBASE ----
 async function loadFromFirebase() {
     setSyncState(true);
+    await savingQueue; // ASPETTA tutti i salvataggi in corso
     try {
         const tabs = ['toshiba1', 'toshiba2', 'mitsubishi'];
         let loaded = false;
@@ -281,13 +283,16 @@ async function loadFromFirebase() {
 }
 
 async function saveTabToFirebase(tabName) {
-    try {
-        const docRef = doc(db, 'toolbox', tabName);
-        await setDoc(docRef, { rows: DB[tabName] });
-    } catch(e) {
-        console.error('Errore salvataggio:', e);
-        showToast('Errore salvataggio', 'error');
-    }
+    savingQueue = savingQueue.then(async () => {
+        try {
+            const docRef = doc(db, 'toolbox', tabName);
+            await setDoc(docRef, { rows: DB[tabName] });
+        } catch(e) {
+            console.error('Errore salvataggio:', e);
+            showToast('Errore salvataggio', 'error');
+        }
+    });
+    return savingQueue;
 }
 
 window.addNewTool = async function() {
@@ -350,7 +355,6 @@ window.deleteTool = async function(realIdx) {
 
 async function uploadPhoto(realIdx, file) {
     showToast('⏳ Elaborazione foto...');
-    setSyncState(true);
     try {
         const resized = await resizeImage(file, 600);
         DB[activeTab][realIdx]['Foto'] = resized;
@@ -360,8 +364,6 @@ async function uploadPhoto(realIdx, file) {
     } catch(e) {
         console.error(e);
         showToast('Errore foto', 'error');
-    } finally {
-        setSyncState(false);
     }
 }
 
@@ -578,7 +580,6 @@ document.getElementById('photo-inserto-input').addEventListener('change', async 
     const file = e.target.files[0];
     if (!file || currentInsertoRealIdx === null) return;
     showToast('⏳ Elaborazione Foto inserto...');
-    setSyncState(true);
     try {
         const resized = await resizeImage(file, 400);
         DB[activeTab][currentInsertoRealIdx]['Foto inserto'] = resized;
@@ -586,7 +587,6 @@ document.getElementById('photo-inserto-input').addEventListener('change', async 
         showToast('✓ Foto inserto salvata!', 'success');
         render();
     } catch(err) { showToast('Errore Foto inserto', 'error'); }
-    finally { setSyncState(false); }
     this.value = '';
 });
 
