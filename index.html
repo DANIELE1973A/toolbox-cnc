@@ -255,8 +255,12 @@ let savingQueue = Promise.resolve(); // Coda salvataggi
 async function loadFromFirebase() {
     console.log('=== SYNC INIZIATO ===');
     console.log('DB PRIMA del sync - activeTab:', activeTab);
-    console.log('Primo utensile PRIMA:', DB[activeTab][0]);
-    console.log('Ha foto PRIMA?', DB[activeTab][0]['Foto'] ? 'SÌ (' + Math.round(DB[activeTab][0]['Foto'].length/1000) + 'KB)' : 'NO');
+    if (DB[activeTab] && DB[activeTab][0]) {
+        console.log('Primo utensile PRIMA:', DB[activeTab][0]['Nome Assembly']);
+        console.log('Ha foto PRIMA?', DB[activeTab][0]['Foto'] ? 'SÌ (' + Math.round(DB[activeTab][0]['Foto'].length/1000) + 'KB)' : 'NO');
+    } else {
+        console.log('DB vuoto prima del sync');
+    }
     
     setSyncState(true);
     await savingQueue;
@@ -280,8 +284,10 @@ async function loadFromFirebase() {
         }
         
         console.log('DB DOPO il sync - activeTab:', activeTab);
-        console.log('Primo utensile DOPO:', DB[activeTab][0]);
-        console.log('Ha foto DOPO?', DB[activeTab][0]['Foto'] ? 'SÌ (' + Math.round(DB[activeTab][0]['Foto'].length/1000) + 'KB)' : 'NO');
+        if (DB[activeTab] && DB[activeTab][0]) {
+            console.log('Primo utensile DOPO:', DB[activeTab][0]['Nome Assembly']);
+            console.log('Ha foto DOPO?', DB[activeTab][0]['Foto'] ? 'SÌ (' + Math.round(DB[activeTab][0]['Foto'].length/1000) + 'KB)' : 'NO');
+        }
         
         render();
         showToast(loaded ? '✓ Dati aggiornati' : '✓ Dati inizializzati', 'success');
