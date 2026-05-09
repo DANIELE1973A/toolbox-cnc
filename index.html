@@ -253,9 +253,15 @@ let savingQueue = Promise.resolve(); // Coda salvataggi
 
 // ---- FIREBASE ----
 async function loadFromFirebase() {
+    console.log('=== SYNC INIZIATO ===');
+    console.log('DB PRIMA del sync - activeTab:', activeTab);
+    console.log('Primo utensile PRIMA:', DB[activeTab][0]);
+    console.log('Ha foto PRIMA?', DB[activeTab][0]['Foto'] ? 'SÌ (' + Math.round(DB[activeTab][0]['Foto'].length/1000) + 'KB)' : 'NO');
+    
     setSyncState(true);
     await savingQueue;
-    await new Promise(resolve => setTimeout(resolve, 1500)); // ASPETTA replica Firebase
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
     try {
         const tabs = ['toshiba1', 'toshiba2', 'mitsubishi'];
         let loaded = false;
@@ -263,25 +269,42 @@ async function loadFromFirebase() {
             const docRef = doc(db, 'toolbox', tab);
             const snap = await getDoc(docRef);
             if (snap.exists() && snap.data().rows && snap.data().rows.length > 0) {
+                console.log(`Firebase ${tab} - primo utensile:`, snap.data().rows[0]['Nome Assembly']);
+                console.log(`Firebase ${tab} - ha foto?`, snap.data().rows[0]['Foto'] ? 'SÌ (' + Math.round(snap.data().rows[0]['Foto'].length/1000) + 'KB)' : 'NO');
+                
                 DB[tab] = snap.data().rows;
                 loaded = true;
-} else {
-                // Firebase vuoto: usa fallback SOLO localmente, NON salvare su Firebase
-                // per evitare di sovrascrivere dati reali in caso di errore temporaneo
+            } else {
                 DB[tab] = JSON.parse(JSON.stringify(FALLBACK_DATA[tab]));
             }
         }
+        
+        console.log('DB DOPO il sync - activeTab:', activeTab);
+        console.log('Primo utensile DOPO:', DB[activeTab][0]);
+        console.log('Ha foto DOPO?', DB[activeTab][0]['Foto'] ? 'SÌ (' + Math.round(DB[activeTab][0]['Foto'].length/1000) + 'KB)' : 'NO');
+        
         render();
         showToast(loaded ? '✓ Dati aggiornati' : '✓ Dati inizializzati', 'success');
     } catch(e) {
         console.error(e);
-        // Fallback ai dati embedded
         DB = JSON.parse(JSON.stringify(FALLBACK_DATA));
         render();
         showToast('Offline — dati locali', 'error');
     }
     setSyncState(false);
+    console.log('=== SYNC FINITO ===');
 }
+
+
+
+
+
+
+
+
+
+
+    
 
 async function saveTabToFirebase(tabName) {
     savingQueue = savingQueue.then(async () => {
