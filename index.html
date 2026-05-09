@@ -350,8 +350,8 @@ window.deleteTool = async function(realIdx) {
 
 async function uploadPhoto(realIdx, file) {
     showToast('⏳ Elaborazione foto...');
+    setSyncState(true);
     try {
-        // Ridimensiona a max 600px e qualità 60% — circa 50-80KB
         const resized = await resizeImage(file, 600);
         DB[activeTab][realIdx]['Foto'] = resized;
         await saveTabToFirebase(activeTab);
@@ -360,6 +360,8 @@ async function uploadPhoto(realIdx, file) {
     } catch(e) {
         console.error(e);
         showToast('Errore foto', 'error');
+    } finally {
+        setSyncState(false);
     }
 }
 
@@ -576,6 +578,7 @@ document.getElementById('photo-inserto-input').addEventListener('change', async 
     const file = e.target.files[0];
     if (!file || currentInsertoRealIdx === null) return;
     showToast('⏳ Elaborazione Foto inserto...');
+    setSyncState(true);
     try {
         const resized = await resizeImage(file, 400);
         DB[activeTab][currentInsertoRealIdx]['Foto inserto'] = resized;
@@ -583,6 +586,7 @@ document.getElementById('photo-inserto-input').addEventListener('change', async 
         showToast('✓ Foto inserto salvata!', 'success');
         render();
     } catch(err) { showToast('Errore Foto inserto', 'error'); }
+    finally { setSyncState(false); }
     this.value = '';
 });
 
