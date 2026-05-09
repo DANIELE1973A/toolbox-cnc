@@ -262,9 +262,12 @@ async function loadFromFirebase() {
             const docRef = doc(db, 'toolbox', tab);
             const snap = await getDoc(docRef);
             if (snap.exists() && snap.data().rows && snap.data().rows.length > 0) {
-                DB[tab] = snap.data().rows;
-                loaded = true;
-            } else {
+    const firebaseData = snap.data().rows;
+    console.log(`>>> FIREBASE ${tab} - primo utensile:`, firebaseData[0]);
+    console.log(`>>> Ha foto?`, firebaseData[0]['Foto'] ? 'SÌ, lunghezza: ' + firebaseData[0]['Foto'].length : 'NO');
+    DB[tab] = firebaseData;
+    loaded = true;
+} else {
                 // Firebase vuoto: usa fallback SOLO localmente, NON salvare su Firebase
                 // per evitare di sovrascrivere dati reali in caso di errore temporaneo
                 DB[tab] = JSON.parse(JSON.stringify(FALLBACK_DATA[tab]));
