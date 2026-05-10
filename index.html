@@ -341,6 +341,7 @@ async function uploadPhoto(realIdx, file) {
         const resized = await resizeImage(file, 600);
         DB[activeTab][realIdx]['Foto'] = resized;
         await saveTabToFirebase(activeTab);
+        await new Promise(resolve => setTimeout(resolve, 3000)); // ASPETTA 3 SECONDI
         render();
         showToast('✓ Foto salvata!', 'success');
     } catch(e) {
