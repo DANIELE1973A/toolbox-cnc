@@ -241,36 +241,35 @@ let savingInProgress = false;
 
 const FALLBACK_DATA = { toshiba1: [], toshiba2: [], mitsubishi: [] };
 
-
-
-
 async function loadFromFirebase() {
     setSyncState(true);
     while(savingInProgress) {
         await new Promise(resolve => setTimeout(resolve, 100));
     }
-    await new Promise(resolve => setTimeout(resolve, 2000)); // Aspetta replica Firebase
-    
     try {
-        // Scarica SOLO la tab attiva, non tutte
-        const docRef = doc(db, 'toolbox', activeTab);
-        const snap = await getDoc(docRef);
-        if (snap.exists() && snap.data().rows && snap.data().rows.length > 0) {
-            DB[activeTab] = snap.data().rows;
-            render();
-            showToast('✓ Dati aggiornati', 'success');
-        } else {
-            showToast('✓ Tab vuota', 'success');
+        const tabs = ['toshiba1', 'toshiba2', 'mitsubishi'];
+        let loaded = false;
+        for (const tab of tabs) {
+            const docRef = doc(db, 'toolbox', tab);
+            const snap = await getDoc(docRef);
+            if (snap.exists() && snap.data().rows && snap.data().rows.length > 0) {
+                DB[tab] = snap.data().rows;
+                loaded = true;
+            } else {
+                DB[tab] = JSON.parse(JSON.stringify(FALLBACK_DATA[tab]));
+            }
         }
+        render();
+        showToast(loaded ? '✓ Dati aggiornati' : '✓ Dati inizializzati', 'success');
     } catch(e) {
         console.error(e);
+        DB = JSON.parse(JSON.stringify(FALLBACK_DATA));
+        render();
         showToast('Offline — dati locali', 'error');
     }
     setSyncState(false);
 }
 
-
-    
 
 
 
