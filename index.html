@@ -239,13 +239,13 @@ let currentPhotoRealIdx = null;
 let currentInsertoRealIdx = null;
 let savingInProgress = false;
 
-const FALLBACK_DATA = { toshiba1: [], toshiba2: [], mitsubishi: [] };
-
 async function loadFromFirebase() {
     setSyncState(true);
     while(savingInProgress) {
         await new Promise(resolve => setTimeout(resolve, 100));
     }
+    await new Promise(resolve => setTimeout(resolve, 2000)); // AGGIUNGI QUESTA RIGA
+    
     try {
         const tabs = ['toshiba1', 'toshiba2', 'mitsubishi'];
         let loaded = false;
@@ -269,23 +269,6 @@ async function loadFromFirebase() {
     }
     setSyncState(false);
 }
-
-
-
-
-
-window.testFirebase = async function() {
-    const docRef = doc(db, 'toolbox', activeTab);
-    const snap = await getDoc(docRef);
-    if (snap.exists()) {
-        const data = snap.data().rows;
-        const primo = data[0];
-        alert(`Firebase ${activeTab}:\nUtensile: ${primo['Nome Assembly']}\nFoto: ${primo['Foto'] ? 'SÌ (' + Math.round(primo['Foto'].length/1000) + 'KB)' : 'NO'}\n\nDB locale:\nFoto: ${DB[activeTab][0]['Foto'] ? 'SÌ (' + Math.round(DB[activeTab][0]['Foto'].length/1000) + 'KB)' : 'NO'}`);
-    }
-};
-
-async function saveTabToFirebase(tabName) {
-
 
 
 
