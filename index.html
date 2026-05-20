@@ -336,16 +336,38 @@ window.deleteTool = async function(realIdx) {
 };
 
 async function uploadPhoto(realIdx, file) {
+    // Blocca l'interfaccia durante elaborazione
+    const syncBtn = document.getElementById('sync-btn');
+    const addBtn = document.querySelector('.add-btn');
+    syncBtn.disabled = true;
+    addBtn.disabled = true;
+    
     showToast('⏳ Elaborazione foto...');
+    
     try {
+        // ASPETTA che resizeImage finisca
         const resized = await resizeImage(file, 600);
+        
+        // ASPETTA 500ms per essere SICURI che la stringa base64 sia completata
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // SOLO ORA scrivi nel DB
         DB[activeTab][realIdx]['Foto'] = resized;
+        
+        // Ora salva su Firebase
         await saveTabToFirebase(activeTab);
-        await new Promise(resolve => setTimeout(resolve, 3000)); // ASPETTA 3 SECONDI
+        
+        // Riabilita interfaccia
+        syncBtn.disabled = false;
+        addBtn.disabled = false;
+        
         render();
         showToast('✓ Foto salvata!', 'success');
+        
     } catch(e) {
         console.error(e);
+        syncBtn.disabled = false;
+        addBtn.disabled = false;
         showToast('Errore foto', 'error');
     }
 }
